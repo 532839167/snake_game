@@ -1,11 +1,14 @@
 package com.company;
 
+import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Random;
 
 public class Panel extends JPanel implements KeyListener, ActionListener {
@@ -26,6 +29,8 @@ public class Panel extends JPanel implements KeyListener, ActionListener {
     //set food in random location
     int fx, fy; // the coordinate of food
     Random r = new Random();
+    //BGM
+    Clip bgm;
 
     int score = 0;
     int len = 3; //the length of snake
@@ -38,6 +43,7 @@ public class Panel extends JPanel implements KeyListener, ActionListener {
         this.setFocusable(true);
         this.addKeyListener(this);
         t.start();
+        loadBGM();
     }
 
     public void init() {
@@ -52,6 +58,30 @@ public class Panel extends JPanel implements KeyListener, ActionListener {
         fx = 25 + 25 * r.nextInt(34);
         fy = 75 + 25 * r.nextInt(24);
         dir = "R";
+    }
+
+    private void loadBGM() {
+        try {
+            bgm = AudioSystem.getClip();
+            InputStream is = this.getClass().getClassLoader().getResourceAsStream("resource/sound/bgm.wav");
+            AudioInputStream audio = AudioSystem.getAudioInputStream(is);
+            bgm.open(audio);
+
+        } catch (LineUnavailableException e) {
+            e.printStackTrace();
+        } catch (UnsupportedAudioFileException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void playBGM() {
+        bgm.loop(Clip.LOOP_CONTINUOUSLY);
+    }
+
+    private void stopBGM() {
+        bgm.stop();
     }
 
     @Override
@@ -72,6 +102,11 @@ public class Panel extends JPanel implements KeyListener, ActionListener {
             }
             //repaint the panel
             repaint();
+            if (started) {
+                bgm.loop(Clip.LOOP_CONTINUOUSLY);
+            } else {
+                bgm.stop();
+            }
         } else if (code == keyEvent.VK_LEFT) {
             dir = "L";
         } else if (code == keyEvent.VK_RIGHT) {
@@ -134,6 +169,7 @@ public class Panel extends JPanel implements KeyListener, ActionListener {
             for (int i = 1; i < len; i++) {
                 if (x[i] == x[0] && y[i] == y[0]) {
                     gameOver = true;
+                    bgm.stop();
                 }
             }
 
